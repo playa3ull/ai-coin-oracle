@@ -1,0 +1,94 @@
+# AI Coin Oracle 🪙
+
+An AI-powered Twitter bot that generates and posts insights about trending GameFi cryptocurrencies using market data and GPT-4.
+
+## Quick Start 🚀
+
+### Prerequisites
+- Docker and Docker Compose
+- Twitter Developer Account
+- CoinGecko API Key
+- OpenAI API Key
+
+### Setup
+
+1. Clone the repository
+```bash
+git clone <repository-url>
+cd AI_Coin_Oracle
+```
+
+2. Configure environment variables
+```bash
+cp .env.example .env
+```
+
+Edit `.env` with your API keys:
+```env
+OPENAI_API_KEY=your_openai_key
+TWITTER_API_KEY=your_twitter_key
+TWITTER_API_SECRET=your_twitter_secret
+TWITTER_ACCESS_TOKEN=your_access_token
+TWITTER_ACCESS_TOKEN_SECRET=your_access_token_secret
+COINGECKO_API_KEY=your_coingecko_key
+
+ENABLE_IMAGE_GENERATION=true (optional)
+```
+
+3. Build and run with Docker
+```bash
+docker-compose up --build
+```
+
+The API will be available at `http://localhost:8000`
+
+### Health Check
+```bash
+curl http://localhost:8000/
+```
+
+### Basic Usage
+
+1. Generate and post a tweet:
+```bash
+curl -X POST http://localhost:8000/generate-tweet
+```
+
+2. Schedule a test tweet:
+```bash
+curl -X POST http://localhost:8000/schedule-test
+```
+
+3. Schedule a custom tweet:
+```bash
+curl -X POST "http://localhost:8000/schedule-tweet?time=15:00"
+```
+
+## Project Structure 📁
+```
+AI_Coin_Oracle/
+├── config/
+│   └── settings.py
+├── src/
+│   ├── services/
+│   │   ├── coin.py         # CoinGecko API integration
+│   │   ├── llm.py          # GPT-4 integration
+│   │   ├── scheduler.py    # Tweet scheduling
+│   │   ├── tweet_service.py # Tweet generation
+│   │   ├── image_generator.py # AI image generation
+│   │   └── tweeter.py      # Twitter API integration
+│   └── __init__.py
+├── tests/
+│   ├── test.py
+│   └── test_env.py
+├── docker-compose.yml
+├── Dockerfile
+├── main.py
+├── requirements.txt
+└── README.md
+```
+
+## Documentation 📚
+For detailed development documentation, please refer to the [Development Docs](docs/development.md).
+
+

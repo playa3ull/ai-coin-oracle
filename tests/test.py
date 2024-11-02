@@ -25,6 +25,7 @@ def test_endpoints():
 
     # Run tests
     endpoints = [
+        ('/', 'GET'),
         ('/generate-tweet', 'POST')
     ]
 

@@ -58,7 +58,7 @@ class LLMService:
             Market context: {json.dumps(context, indent=2)}
 
             Core Requirements:
-            - Must be under 280 characters
+            - Must be under 275 characters
             - Focus on significant market movements or interesting volume changes
             - Add gaming-related context when relevant
             - Include relevant emojis and hashtags
@@ -69,63 +69,56 @@ class LLMService:
             Write a tweet that crypto gaming enthusiasts would want to engage with.
             Make it feel natural and exciting, not like a generic market update.
             
-            Choose a style for the tweet:{tweet_styles}
+            Choose a style for the tweet:{', '.join(tweet_styles)}
 
             Tweet:
             """
 
-        # selected_style = random.choice(tweet_styles)
-        # prompt += f"\nStyle: {selected_style}"
-
         response = await self.llm.acomplete(prompt)
         tweet = response.text.strip()
 
-        if len(tweet) > 280:
-            return tweet[:277] + "..."
-        else:
-            return tweet
+        if len(tweet) > 275:
+            tweet = tweet[:272] + "..."
+
+        return tweet
 
 
 # Example usage
-async def main():
-    llm_service = LLMService()
-
-    # Sample data for testing
-    trending_coins = [
-        {
-            'name': 'Axie Infinity',
-            'symbol': 'AXS',
-            'current_price': 4.91,
-            'price_change_24h': -4.13,
-            'volume_24h': 75947295,
-            'market_cap_rank': 106
-        },
-        {
-            'name': 'The Sandbox',
-            'symbol': 'SAND',
-            'current_price': 0.3248,
-            'price_change_24h': 2.5,
-            'volume_24h': 50123456,
-            'market_cap_rank': 98
-        }
-    ]
-
-    market_summary = {
-        'market_cap': 15000000000,
-        'total_volume': 2000000000,
-        'market_cap_change_24h': 5.2,
-        'volume_change_24h': 15.7
-    }
-
-    tweet = await llm_service.generate_tweet(trending_coins, market_summary)
-    return tweet
-
-
-if __name__ == '__main__':
-    tweet = asyncio.run(main())
-    if len(tweet) > 280:
-        print(f"Tweet length: {len(tweet)}")
-        tweet = tweet[:277] + "..."
-        print(len(tweet))
-    tweet_poster = TweetPoster()
-    tweet_poster.post_tweet(tweet)
+# async def main():
+#     llm_service = LLMService()
+#
+#     # Sample data for testing
+#     trending_coins = [
+#         {
+#             'name': 'Axie Infinity',
+#             'symbol': 'AXS',
+#             'current_price': 4.91,
+#             'price_change_24h': -4.13,
+#             'volume_24h': 75947295,
+#             'market_cap_rank': 106
+#         },
+#         {
+#             'name': 'The Sandbox',
+#             'symbol': 'SAND',
+#             'current_price': 0.3248,
+#             'price_change_24h': 2.5,
+#             'volume_24h': 50123456,
+#             'market_cap_rank': 98
+#         }
+#     ]
+#
+#     market_summary = {
+#         'market_cap': 15000000000,
+#         'total_volume': 2000000000,
+#         'market_cap_change_24h': 5.2,
+#         'volume_change_24h': 15.7
+#     }
+#
+#     tweet = await llm_service.generate_tweet(trending_coins, market_summary)
+#     return tweet
+#
+#
+# if __name__ == '__main__':
+#     tweet = asyncio.run(main())
+#     tweet_poster = TweetPoster()
+#     tweet_poster.post_tweet(tweet)

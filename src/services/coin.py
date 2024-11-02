@@ -1,19 +1,17 @@
-# src/services/coin_service.py
 import aiohttp
 import asyncio
 from typing import List, Dict
 import time
-from datetime import datetime
-import os
-from dotenv import load_dotenv
+from src.config.settings import get_settings
 
-load_dotenv()
+
+settings = get_settings()
 
 
 class CoinService:
     def __init__(self):
         self.base_url = "https://api.coingecko.com/api/v3"
-        self.api_key = os.getenv("COINGECKO_API_KEY")
+        self.api_key = settings.COINGECKO_API_KEY
         self.last_request_time = 0
         self.min_request_interval = 1.5
 
@@ -26,9 +24,10 @@ class CoinService:
         if time_since_last_request < self.min_request_interval:
             await asyncio.sleep(self.min_request_interval - time_since_last_request)
 
-        headers = {"Accept": "application/json"}
-        if self.api_key:
-            headers["x-cg-demo-api-key"] = self.api_key
+        headers = {
+            "Accept": "application/json",
+            "x-cg-demo-api-key": self.api_key
+        }
 
         try:
             async with aiohttp.ClientSession() as session:
@@ -111,27 +110,27 @@ class CoinService:
 
 
 # Example usage
-async def main():
-    coin_service = CoinService()
-
-    # Get trending gaming coins
-    trending = await coin_service.get_trending_gaming_coins(limit=10)
-    print("\nTop 10 Trending Gaming Coins (by 24h volume):")
-    for coin in trending:
-        print(f"{coin['name']} ({coin['symbol']}):")
-        print(f"  Price: ${coin['current_price']:.4f}")
-        print(f"  24h Change: {coin['price_change_24h']:.2f}%")
-        print(f"  24h Volume: ${coin['volume_24h']:,.2f}")
-        print()
-
-    # Get gaming category summary
-    summary = await coin_service.get_gaming_coins_summary()
-    print("\nGaming Coins Category Summary:")
-    print(f"Total Market Cap: ${summary['market_cap']:,.2f}")
-    print(f"24h Volume: ${summary['total_volume']:,.2f}")
-    print(f"Market Cap Change 24h: {summary['market_cap_change_24h']:.2f}%")
-    print(f"Volume Change 24h: {summary['volume_change_24h']:.2f}%")
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
+# async def main():
+#     coin_service = CoinService()
+#
+#     # Get trending gaming coins
+#     trending = await coin_service.get_trending_gaming_coins(limit=10)
+#     print("\nTop 10 Trending Gaming Coins (by 24h volume):")
+#     for coin in trending:
+#         print(f"{coin['name']} ({coin['symbol']}):")
+#         print(f"  Price: ${coin['current_price']:.4f}")
+#         print(f"  24h Change: {coin['price_change_24h']:.2f}%")
+#         print(f"  24h Volume: ${coin['volume_24h']:,.2f}")
+#         print()
+#
+#     # Get gaming category summary
+#     summary = await coin_service.get_gaming_coins_summary()
+#     print("\nGaming Coins Category Summary:")
+#     print(f"Total Market Cap: ${summary['market_cap']:,.2f}")
+#     print(f"24h Volume: ${summary['total_volume']:,.2f}")
+#     print(f"Market Cap Change 24h: {summary['market_cap_change_24h']:.2f}%")
+#     print(f"Volume Change 24h: {summary['volume_change_24h']:.2f}%")
+#
+#
+# if __name__ == "__main__":
+#     asyncio.run(main())

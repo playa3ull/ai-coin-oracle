@@ -1,19 +1,20 @@
+from datetime import datetime, timedelta
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from src.config.settings import get_settings
 from src.services.coin import CoinService
 from src.services.tweeter import TweetPoster
 from src.services.tweet_service import TweetService
+from src.services.image_generator import ImageGenerator
 from src.services.llm import LLMService
 from src.services.scheduler import TweetScheduler
 import uvicorn
-from dotenv import load_dotenv
-import os
-from datetime import datetime, timedelta
 
-load_dotenv()
 
-app = FastAPI()
+settings = get_settings()
+
+app = FastAPI(title="AI Coin Oracle")
 
 # Add CORS middleware
 app.add_middleware(
@@ -28,7 +29,8 @@ app.add_middleware(
 coin_service = CoinService()
 tweet_poster = TweetPoster()
 llm_service = LLMService()
-tweet_service = TweetService(coin_service, llm_service, tweet_poster)
+image_generator = ImageGenerator()
+tweet_service = TweetService(coin_service, llm_service, tweet_poster, image_generator)
 scheduler = TweetScheduler(tweet_service)
 
 
@@ -65,8 +67,8 @@ async def schedule_test():
 
 
 @app.post("/generate-tweet", response_model=TweetResponse)
-async def generate_and_post_tweet():
-    return await tweet_service.generate_and_post_tweet()
+async def generate_and_post_tweet(force_image: bool = False):
+    return await tweet_service.generate_and_post_tweet(force_image)
 
 
 @app.on_event("startup")
@@ -80,4 +82,4 @@ async def stop_scheduler():
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host=settings.API_HOST, port=settings.API_PORT, reload=True)
