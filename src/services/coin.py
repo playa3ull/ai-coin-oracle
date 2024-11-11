@@ -4,7 +4,6 @@ from typing import List, Dict
 import time
 from src.config.settings import get_settings
 
-
 settings = get_settings()
 
 
@@ -12,10 +11,10 @@ class CoinService:
     def __init__(self):
         self.base_url = "https://api.coingecko.com/api/v3"
         self.api_key = settings.COINGECKO_API_KEY
-        print(f"API Key present: {bool(self.api_key)}")
         self.last_request_time = 0
         self.min_request_interval = 1.5
 
+    # In src/services/coin.py
     async def _make_request(self, endpoint: str, params: dict = None) -> Dict:
         """
         Make a rate-limited API request to CoinGecko
@@ -25,39 +24,31 @@ class CoinService:
         if time_since_last_request < self.min_request_interval:
             await asyncio.sleep(self.min_request_interval - time_since_last_request)
 
-        # Debug print API key
-        print(f"API Key present: {bool(self.api_key)}")
-        if self.api_key:
-            print(f"API Key first 5 chars: {self.api_key[:5]}")
-
-        # Updated headers with both required headers
+        # Updated headers to mimic browser request
         headers = {
             "Accept": "application/json",
-            "Content-Type": "application/json",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Accept-Language": "en-US,en;q=0.9",
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) "
+                          "Chrome/130.0.0.0 Safari/537.36",
+            "Origin": "https://www.coingecko.com",
+            "Referer": "https://www.coingecko.com/",
         }
 
         if self.api_key:
-            # Try both header formats to ensure compatibility
-            headers.update({
-                "x-cg-demo-api-key": self.api_key,
-                "X-CG-Demo-API-Key": self.api_key,  # Alternative format
-            })
+            headers["x-cg-demo-api-key"] = self.api_key
 
         try:
             async with aiohttp.ClientSession() as session:
                 url = f"{self.base_url}{endpoint}"
-                print(f"Request URL: {url}")
-                print(f"Request Headers: {headers}")
-                print(f"Request Params: {params}")
+                print(f"Making request to {url}")
+                print(f"With headers: {headers}")
+
+                # Add a small delay to prevent rate limiting
+                await asyncio.sleep(1)
 
                 async with session.get(url, params=params, headers=headers) as response:
                     self.last_request_time = time.time()
-
-                    # Print response details for debugging
-                    print(f"Response Status: {response.status}")
-                    print(f"Response Headers: {response.headers}")
-                    response_text = await response.text()
-                    print(f"Response Body: {response_text}")
 
                     if response.status == 429:
                         retry_after = int(response.headers.get('Retry-After', 60))
@@ -65,12 +56,20 @@ class CoinService:
                         await asyncio.sleep(retry_after)
                         return await self._make_request(endpoint, params)
 
+                    if response.status == 403:
+                        response_text = await response.text()
+                        print(f"403 Forbidden error. Response: {response_text}")
+
+                        # Add retry logic for 403 errors
+                        print("Retrying request after 5 seconds...")
+                        await asyncio.sleep(5)
+                        return await self._make_request(endpoint, params)
+
                     response.raise_for_status()
                     return await response.json()
 
         except aiohttp.ClientError as e:
             print(f"API request error: {str(e)}")
-            print(f"Request details - URL: {url}, Headers: {headers}, Params: {params}")
             raise
 
     async def get_trending_gaming_coins(self, limit: int = 10) -> List[Dict]:
@@ -132,7 +131,6 @@ class CoinService:
         except Exception as e:
             print(f"Error fetching gaming category summary: {str(e)}")
             raise
-
 
 # Example usage
 # async def main():
