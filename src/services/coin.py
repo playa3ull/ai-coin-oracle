@@ -27,8 +27,11 @@ class CoinService:
         # Simplified, reliable headers
         headers = {
             "Accept": "application/json",
-            "Accept-Encoding": "gzip, deflate",  # Simple compression without brotli
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
+            "Accept-Encoding": "gzip, deflate",
+            "Accept-Language": "en-US,en;q=0.9",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+            "Origin": "https://www.coingecko.com",
+            "Referer": "https://www.coingecko.com/",
         }
 
         if self.api_key:
