@@ -16,3 +16,4 @@ openai==1.52.2
 pytz==2024.2
 pydantic-settings==2.6.0
 tzlocal==5.2
+twikit==2.1.3

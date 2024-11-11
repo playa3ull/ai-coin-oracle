@@ -12,6 +12,7 @@ class CoinService:
     def __init__(self):
         self.base_url = "https://api.coingecko.com/api/v3"
         self.api_key = settings.COINGECKO_API_KEY
+        print(f"API Key present: {bool(self.api_key)}")
         self.last_request_time = 0
         self.min_request_interval = 1.5
 
@@ -24,16 +25,39 @@ class CoinService:
         if time_since_last_request < self.min_request_interval:
             await asyncio.sleep(self.min_request_interval - time_since_last_request)
 
+        # Debug print API key
+        print(f"API Key present: {bool(self.api_key)}")
+        if self.api_key:
+            print(f"API Key first 5 chars: {self.api_key[:5]}")
+
+        # Updated headers with both required headers
         headers = {
             "Accept": "application/json",
-            "x-cg-demo-api-key": self.api_key
+            "Content-Type": "application/json",
         }
+
+        if self.api_key:
+            # Try both header formats to ensure compatibility
+            headers.update({
+                "x-cg-demo-api-key": self.api_key,
+                "X-CG-Demo-API-Key": self.api_key,  # Alternative format
+            })
 
         try:
             async with aiohttp.ClientSession() as session:
                 url = f"{self.base_url}{endpoint}"
+                print(f"Request URL: {url}")
+                print(f"Request Headers: {headers}")
+                print(f"Request Params: {params}")
+
                 async with session.get(url, params=params, headers=headers) as response:
                     self.last_request_time = time.time()
+
+                    # Print response details for debugging
+                    print(f"Response Status: {response.status}")
+                    print(f"Response Headers: {response.headers}")
+                    response_text = await response.text()
+                    print(f"Response Body: {response_text}")
 
                     if response.status == 429:
                         retry_after = int(response.headers.get('Retry-After', 60))
@@ -46,6 +70,7 @@ class CoinService:
 
         except aiohttp.ClientError as e:
             print(f"API request error: {str(e)}")
+            print(f"Request details - URL: {url}, Headers: {headers}, Params: {params}")
             raise
 
     async def get_trending_gaming_coins(self, limit: int = 10) -> List[Dict]:

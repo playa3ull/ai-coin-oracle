@@ -15,6 +15,11 @@ class Settings(BaseSettings):
     TWITTER_BEARER_TOKEN: str | None = None
     COINGECKO_API_KEY: str
 
+    # Twitter Account
+    TWITTER_USERNAME: str
+    TWITTER_EMAIL: str
+    TWITTER_PASSWORD: str
+
     # Feature flags
     ENABLE_IMAGE_GENERATION: bool = True
 

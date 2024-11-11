@@ -64,6 +64,12 @@ curl -X POST http://localhost:8000/schedule-test
 curl -X POST "http://localhost:8000/schedule-tweet?time=15:00"
 ```
 
+4. Retweet a tweet:
+```bash
+curl -X POST "http://localhost:8000/generate-retweet"
+```
+
+
 ## Project Structure 📁
 ```
 AI_Coin_Oracle/

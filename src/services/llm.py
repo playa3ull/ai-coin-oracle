@@ -5,6 +5,9 @@ import json
 import asyncio
 import random
 from dotenv import load_dotenv
+import logging
+
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 
@@ -82,6 +85,78 @@ class LLMService:
 
         return tweet
 
+    async def generate_retweet(self, trending_tweets: List[Dict]) -> Dict:
+        """
+        Select a tweet from trending tweets and generate a response
+
+        Args:
+            trending_tweets: List of trending tweets with their metadata
+
+        Returns:
+            Dict containing selected tweet and generated response
+        """
+        if trending_tweets:
+            tweets_context = json.dumps([{
+                'text': t['tweet_text'],
+                'author': t['author_username'],
+                'followers': t['followers_count'],
+                'is_verified': t['is_verified'],
+                'query': t['matched_query']
+            } for t in trending_tweets], indent=2)
+
+        prompt = f"""
+                    You are a knowledgeable crypto gaming expert managing a Twitter account. 
+                    Review these trending GameFi tweets and select ONE to respond to:
+
+                    {tweets_context}
+
+                    Requirements for selection:
+                    - Choose tweet with substantial discussion potential
+                    - Prefer verified accounts or those with more followers
+                    - Avoid controversial or negative content
+                    - Prioritize tweets about gaming mechanics, new features, or market analysis
+
+                    Requirements for response:
+                    - Must be under 100 characters (to leave room for quote tweet)
+                    - Add value through insight, analysis, or relevant context
+                    - Be engaging but professional
+                    - Include 1-2 relevant emojis
+                    - Don't just agree or praise - add substance
+                    - No price predictions or financial advice
+                    - Keep the tone optimistic but grounded
+
+                    First select the best tweet to respond to, then generate a response.
+                    Return your selection and response in this JSON format:
+                    {{"selected_index": <index of chosen tweet>, "response": "<your response>"}}
+                """
+
+        try:
+            response = await self.llm.acomplete(prompt)
+            result = json.loads(response.text.strip())
+
+            # Get the full tweet data for the selected tweet
+            selected_tweet = trending_tweets[result['selected_index']]
+
+            return {
+                'tweet': selected_tweet,
+                'response': result['response'].strip()
+            }
+
+        except (json.JSONDecodeError, IndexError, KeyError) as e:
+            logger.error(f"Error processing LLM response: {str(e)}")
+            # Fallback to random selection with generic response
+            selected_tweet = random.choice(trending_tweets)
+            return {
+                'tweet': selected_tweet,
+                'response': "Interesting perspective on GameFi! 🎮 The gaming ecosystem keeps evolving. #GameFi #P2E"
+            }
+        except Exception as e:
+            logger.error(f"Unexpected error in response generation: {str(e)}")
+            raise
+
+    def _format_tweet_url(self, tweet_id: str) -> str:
+        """Format a tweet URL from tweet ID"""
+        return f"https://twitter.com/i/web/status/{tweet_id}"
 
 # Example usage
 # async def main():
@@ -122,3 +197,13 @@ class LLMService:
 #     tweet = asyncio.run(main())
 #     tweet_poster = TweetPoster()
 #     tweet_poster.post_tweet(tweet)
+
+
+if __name__ == '__main__':
+    from src.services.tweet_scraper import TweetScraper
+    tweet_scraper = TweetScraper()
+    tweets = asyncio.run(tweet_scraper.get_trending_tweets())
+
+    llm = LLMService()
+    response = asyncio.run(llm.generate_retweet(tweets))
+    print(response)

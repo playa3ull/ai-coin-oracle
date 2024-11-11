@@ -11,11 +11,12 @@ logger = logging.getLogger(__name__)
 
 
 class TweetService:
-    def __init__(self, coin_service, llm_service, tweet_poster, image_generator):
+    def __init__(self, coin_service, llm_service, tweet_poster, image_generator, tweet_scraper):
         self.coin_service = coin_service
         self.llm_service = llm_service
         self.tweet_poster = tweet_poster
         self.image_generator = image_generator
+        self.tweet_scraper = tweet_scraper
         self.use_images = settings.ENABLE_IMAGE_GENERATION
 
     async def generate_and_post_tweet(self, force_image: bool = False) -> Dict[str, Any]:
@@ -69,3 +70,77 @@ class TweetService:
                 await self.image_generator.cleanup_image(image_path)
 
         # return response
+
+    async def generate_and_post_retweet(self) -> Dict[str, Any]:
+        """
+        Generate and post a retweet with comment for trending GameFi tweets
+
+        Returns:
+            Dict containing response data
+        """
+        try:
+            # Initialize scraper if needed
+            if not self.tweet_scraper._initialized:
+                await self.tweet_scraper.initialize()
+
+            # Get trending tweets
+            trending_tweets = await self.tweet_scraper.get_trending_tweets(limit=5)
+            if not trending_tweets:
+                raise HTTPException(status_code=404, detail="No trending tweets found")
+
+            # Generate response for selected tweet
+            retweet_data = await self.llm_service.generate_retweet(trending_tweets)
+            if not retweet_data:
+                raise HTTPException(status_code=500, detail="Failed to generate retweet response")
+
+            # Post the retweet
+            selected_tweet = retweet_data['tweet']
+            response = retweet_data['response']
+
+            tweet_id = self.tweet_poster.retweet_with_comment(
+                tweet_id=selected_tweet['tweet_id'],
+                comment=response
+            )
+
+            if tweet_id:
+                return {
+                    "success": True,
+                    "message": "Retweet posted successfully",
+                    "tweet_id": str(tweet_id),
+                    "original_tweet": {
+                        "id": selected_tweet['tweet_id'],
+                        "author": selected_tweet['author_username'],
+                        "text": selected_tweet['tweet_text']
+                    },
+                    "response": response
+                }
+            else:
+                raise HTTPException(status_code=500, detail="Failed to post retweet")
+
+        except Exception as e:
+            logger.error(f"Error in retweet generation/posting: {str(e)}")
+            raise HTTPException(status_code=500, detail=str(e))
+
+        finally:
+            # Cleanup scraper connection if needed
+            if self.tweet_scraper._initialized:
+                await self.tweet_scraper.close()
+
+
+if __name__ == '__main__':
+
+    from src.services.coin import CoinService
+    from src.services.llm import LLMService
+    from src.services.tweeter import TweetPoster
+    from src.services.image_generator import ImageGenerator
+    from src.services.tweet_scraper import TweetScraper
+    import asyncio
+
+    coin_service = CoinService()
+    tweet_poster = TweetPoster()
+    llm_service = LLMService()
+    image_generator = ImageGenerator()
+    tweet_scraper = TweetScraper()
+
+    tweet_service = TweetService(coin_service, llm_service, tweet_poster, image_generator, tweet_scraper)
+    asyncio.run(tweet_service.generate_and_post_retweet())

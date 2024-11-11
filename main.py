@@ -7,10 +7,10 @@ from src.services.coin import CoinService
 from src.services.tweeter import TweetPoster
 from src.services.tweet_service import TweetService
 from src.services.image_generator import ImageGenerator
+from src.services.tweet_scraper import TweetScraper
 from src.services.llm import LLMService
 from src.services.scheduler import TweetScheduler
 import uvicorn
-
 
 settings = get_settings()
 
@@ -30,7 +30,8 @@ coin_service = CoinService()
 tweet_poster = TweetPoster()
 llm_service = LLMService()
 image_generator = ImageGenerator()
-tweet_service = TweetService(coin_service, llm_service, tweet_poster, image_generator)
+tweet_scraper = TweetScraper()
+tweet_service = TweetService(coin_service, llm_service, tweet_poster, image_generator, tweet_scraper)
 scheduler = TweetScheduler(tweet_service)
 
 
@@ -38,6 +39,14 @@ class TweetResponse(BaseModel):
     success: bool
     message: str
     tweet_id: str = None
+
+
+class RetweetResponse(BaseModel):
+    success: bool
+    message: str
+    tweet_id: str = None
+    original_tweet: dict = None
+    response: str = None
 
 
 @app.get("/")
@@ -57,8 +66,8 @@ async def schedule_custom_tweet(time: str):
 
 @app.post("/schedule-test")
 async def schedule_test():
-    """Schedule a tweet for 1 minutes from now"""
-    test_time = (datetime.now() + timedelta(minutes=1)).strftime("%H:%M")
+    """Schedule a tweet for 30 seconds from now"""
+    test_time = (datetime.now() + timedelta(seconds=30)).strftime("%H:%M")
     try:
         scheduler.schedule_tweet(test_time)
         return {"message": f"Test tweet scheduled for {test_time}"}
@@ -69,6 +78,11 @@ async def schedule_test():
 @app.post("/generate-tweet", response_model=TweetResponse)
 async def generate_and_post_tweet(force_image: bool = False):
     return await tweet_service.generate_and_post_tweet(force_image)
+
+
+@app.post("/generate-retweet", response_model=RetweetResponse)
+async def generate_and_post_retweet():
+    return await tweet_service.generate_and_post_retweet()
 
 
 @app.on_event("startup")

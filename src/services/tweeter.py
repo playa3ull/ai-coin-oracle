@@ -62,7 +62,34 @@ class TweetPoster:
             logger.error(f"Error posting tweet: {str(e)}")
             return None
 
+    def retweet_with_comment(self, tweet_id: str, comment: str) -> str:
+        """
+        Retweet a tweet with a comment (quote tweet)
 
-if __name__ == '__main__':
-    poster = TweetPoster()
-    poster.post_tweet("Hello, Twitter!")
+        Args:
+            tweet_id: ID of the tweet to retweet
+            comment: Comment to add to the retweet
+
+        Returns:
+            str: New tweet ID if successful, None otherwise
+        """
+        try:
+            if len(comment) > 280:
+                comment = comment[:277] + "..."
+
+            # Create quote tweet
+            response = self.client.create_tweet(
+                text=comment,
+                quote_tweet_id=tweet_id
+            )
+
+            return response.data['id'] if response.data else None
+
+        except Exception as e:
+            logger.error(f"Error creating quote tweet: {str(e)}")
+            return None
+
+
+# if __name__ == '__main__':
+#     poster = TweetPoster()
+#     poster.retweet_with_comment('1747302774683910652','Exciting insights!')
