@@ -24,15 +24,11 @@ class CoinService:
         if time_since_last_request < self.min_request_interval:
             await asyncio.sleep(self.min_request_interval - time_since_last_request)
 
-        # Updated headers to mimic browser request
+        # Simplified, reliable headers
         headers = {
             "Accept": "application/json",
-            "Accept-Encoding": "gzip, deflate, br",
-            "Accept-Language": "en-US,en;q=0.9",
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) "
-                          "Chrome/130.0.0.0 Safari/537.36",
-            "Origin": "https://www.coingecko.com",
-            "Referer": "https://www.coingecko.com/",
+            "Accept-Encoding": "gzip, deflate",  # Simple compression without brotli
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
         }
 
         if self.api_key:
@@ -44,9 +40,6 @@ class CoinService:
                 print(f"Making request to {url}")
                 print(f"With headers: {headers}")
 
-                # Add a small delay to prevent rate limiting
-                await asyncio.sleep(1)
-
                 async with session.get(url, params=params, headers=headers) as response:
                     self.last_request_time = time.time()
 
@@ -54,15 +47,6 @@ class CoinService:
                         retry_after = int(response.headers.get('Retry-After', 60))
                         print(f"Rate limited. Waiting {retry_after} seconds...")
                         await asyncio.sleep(retry_after)
-                        return await self._make_request(endpoint, params)
-
-                    if response.status == 403:
-                        response_text = await response.text()
-                        print(f"403 Forbidden error. Response: {response_text}")
-
-                        # Add retry logic for 403 errors
-                        print("Retrying request after 5 seconds...")
-                        await asyncio.sleep(5)
                         return await self._make_request(endpoint, params)
 
                     response.raise_for_status()
