@@ -14,7 +14,6 @@ class CoinService:
         self.last_request_time = 0
         self.min_request_interval = 1.5
 
-    # In src/services/coin.py
     async def _make_request(self, endpoint: str, params: dict = None) -> Dict:
         """
         Make a rate-limited API request to CoinGecko
@@ -24,25 +23,13 @@ class CoinService:
         if time_since_last_request < self.min_request_interval:
             await asyncio.sleep(self.min_request_interval - time_since_last_request)
 
-        # Simplified, reliable headers
-        headers = {
-            "Accept": "application/json",
-            "Accept-Encoding": "gzip, deflate",
-            "Accept-Language": "en-US,en;q=0.9",
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
-            "Origin": "https://www.coingecko.com",
-            "Referer": "https://www.coingecko.com/",
-        }
-
+        headers = {"Accept": "application/json"}
         if self.api_key:
             headers["x-cg-demo-api-key"] = self.api_key
 
         try:
             async with aiohttp.ClientSession() as session:
                 url = f"{self.base_url}{endpoint}"
-                print(f"Making request to {url}")
-                print(f"With headers: {headers}")
-
                 async with session.get(url, params=params, headers=headers) as response:
                     self.last_request_time = time.time()
 
@@ -64,7 +51,6 @@ class CoinService:
         Get trending gaming coins using the coins/markets endpoint with gaming category
         """
         try:
-            # Get gaming coins sorted by market cap
             params = {
                 'vs_currency': 'usd',
                 'category': 'gaming',
@@ -77,7 +63,6 @@ class CoinService:
 
             coins_data = await self._make_request("/coins/markets", params)
 
-            # Format the response
             trending_coins = [
                 {
                     'id': coin['id'],
@@ -119,28 +104,3 @@ class CoinService:
             print(f"Error fetching gaming category summary: {str(e)}")
             raise
 
-# Example usage
-# async def main():
-#     coin_service = CoinService()
-#
-#     # Get trending gaming coins
-#     trending = await coin_service.get_trending_gaming_coins(limit=10)
-#     print("\nTop 10 Trending Gaming Coins (by 24h volume):")
-#     for coin in trending:
-#         print(f"{coin['name']} ({coin['symbol']}):")
-#         print(f"  Price: ${coin['current_price']:.4f}")
-#         print(f"  24h Change: {coin['price_change_24h']:.2f}%")
-#         print(f"  24h Volume: ${coin['volume_24h']:,.2f}")
-#         print()
-#
-#     # Get gaming category summary
-#     summary = await coin_service.get_gaming_coins_summary()
-#     print("\nGaming Coins Category Summary:")
-#     print(f"Total Market Cap: ${summary['market_cap']:,.2f}")
-#     print(f"24h Volume: ${summary['total_volume']:,.2f}")
-#     print(f"Market Cap Change 24h: {summary['market_cap_change_24h']:.2f}%")
-#     print(f"Volume Change 24h: {summary['volume_change_24h']:.2f}%")
-#
-#
-# if __name__ == "__main__":
-#     asyncio.run(main())

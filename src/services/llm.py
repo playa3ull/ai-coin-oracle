@@ -1,5 +1,5 @@
 from llama_index.llms.openai import OpenAI
-from src.services.tweeter import TweetPoster
+from src.config.settings import get_settings
 from typing import List, Dict
 import json
 import asyncio
@@ -9,12 +9,13 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+settings = get_settings()
 load_dotenv()
 
 
 class LLMService:
     def __init__(self):
-        self.llm = OpenAI(model="gpt-4o-mini", temperature=0.8, max_tokens=110)
+        self.llm = OpenAI(model=settings.OPENAI_MODEL, temperature=0.8, max_tokens=110)
 
     async def generate_tweet(self, trending_coins: List[Dict], market_summary: Dict = None) -> str:
         """
@@ -158,51 +159,13 @@ class LLMService:
         """Format a tweet URL from tweet ID"""
         return f"https://twitter.com/i/web/status/{tweet_id}"
 
-# Example usage
-# async def main():
-#     llm_service = LLMService()
-#
-#     # Sample data for testing
-#     trending_coins = [
-#         {
-#             'name': 'Axie Infinity',
-#             'symbol': 'AXS',
-#             'current_price': 4.91,
-#             'price_change_24h': -4.13,
-#             'volume_24h': 75947295,
-#             'market_cap_rank': 106
-#         },
-#         {
-#             'name': 'The Sandbox',
-#             'symbol': 'SAND',
-#             'current_price': 0.3248,
-#             'price_change_24h': 2.5,
-#             'volume_24h': 50123456,
-#             'market_cap_rank': 98
-#         }
-#     ]
-#
-#     market_summary = {
-#         'market_cap': 15000000000,
-#         'total_volume': 2000000000,
-#         'market_cap_change_24h': 5.2,
-#         'volume_change_24h': 15.7
-#     }
-#
-#     tweet = await llm_service.generate_tweet(trending_coins, market_summary)
-#     return tweet
-#
-#
-# if __name__ == '__main__':
-#     tweet = asyncio.run(main())
-#     tweet_poster = TweetPoster()
-#     tweet_poster.post_tweet(tweet)
+
 
 
 if __name__ == '__main__':
     from src.services.tweet_scraper import TweetScraper
     tweet_scraper = TweetScraper()
-    tweets = asyncio.run(tweet_scraper.get_trending_tweets())
+    tweets = asyncio.run(tweet_scraper.get_trending_tweets(limit=5))
 
     llm = LLMService()
     response = asyncio.run(llm.generate_retweet(tweets))

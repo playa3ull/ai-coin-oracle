@@ -1,7 +1,6 @@
 from fastapi import HTTPException
 import logging
 from typing import Optional, Dict, Any
-import os
 from src.config.settings import get_settings
 
 settings = get_settings()
@@ -125,22 +124,3 @@ class TweetService:
             # Cleanup scraper connection if needed
             if self.tweet_scraper._initialized:
                 await self.tweet_scraper.close()
-
-
-if __name__ == '__main__':
-
-    from src.services.coin import CoinService
-    from src.services.llm import LLMService
-    from src.services.tweeter import TweetPoster
-    from src.services.image_generator import ImageGenerator
-    from src.services.tweet_scraper import TweetScraper
-    import asyncio
-
-    coin_service = CoinService()
-    tweet_poster = TweetPoster()
-    llm_service = LLMService()
-    image_generator = ImageGenerator()
-    tweet_scraper = TweetScraper()
-
-    tweet_service = TweetService(coin_service, llm_service, tweet_poster, image_generator, tweet_scraper)
-    asyncio.run(tweet_service.generate_and_post_retweet())

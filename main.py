@@ -10,6 +10,7 @@ from src.services.image_generator import ImageGenerator
 from src.services.tweet_scraper import TweetScraper
 from src.services.llm import LLMService
 from src.services.scheduler import TweetScheduler
+import pytz
 import uvicorn
 
 settings = get_settings()
@@ -67,7 +68,7 @@ async def schedule_custom_tweet(time: str):
 @app.post("/schedule-test")
 async def schedule_test():
     """Schedule a tweet for 30 seconds from now"""
-    test_time = (datetime.now() + timedelta(seconds=30)).strftime("%H:%M")
+    test_time = (datetime.now(pytz.timezone(settings.LOCAL_TIMEZONE)) + timedelta(seconds=30)).strftime("%H:%M")
     try:
         scheduler.schedule_tweet(test_time)
         return {"message": f"Test tweet scheduled for {test_time}"}

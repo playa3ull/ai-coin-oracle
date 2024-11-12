@@ -32,7 +32,15 @@ TWITTER_ACCESS_TOKEN=your_access_token
 TWITTER_ACCESS_TOKEN_SECRET=your_access_token_secret
 COINGECKO_API_KEY=your_coingecko_key
 
-ENABLE_IMAGE_GENERATION=true (optional)
+#Twitter Account (retweeting)
+TWITTER_USERNAME=your_twitter_username
+TWITTER_EMAIL=your_twitter_email
+TWITTER_PASSWORD=your_twitter_password
+
+
+# Optional
+ENABLE_IMAGE_GENERATION=true 
+OPENAI_MODEL=your_openai_model 
 ```
 
 3. Build and run with Docker
@@ -54,7 +62,7 @@ curl http://localhost:8000/
 curl -X POST http://localhost:8000/generate-tweet
 ```
 
-2. Schedule a test tweet:
+2. Schedule a test tweet (30 seconds from now):
 ```bash
 curl -X POST http://localhost:8000/schedule-test
 ```
@@ -81,12 +89,12 @@ AI_Coin_Oracle/
 │   │   ├── llm.py          # GPT-4 integration
 │   │   ├── scheduler.py    # Tweet scheduling
 │   │   ├── tweet_service.py # Tweet generation
+│   │   ├── tweet_scraper.py # Trending tweets scraping
 │   │   ├── image_generator.py # AI image generation
 │   │   └── tweeter.py      # Twitter API integration
 │   └── __init__.py
 ├── tests/
-│   ├── test.py
-│   └── test_env.py
+│   └── test.py
 ├── docker-compose.yml
 ├── Dockerfile
 ├── main.py
@@ -94,7 +102,8 @@ AI_Coin_Oracle/
 └── README.md
 ```
 
-## Documentation 📚
-For detailed development documentation, please refer to the [Development Docs](docs/development.md).
+## TO DO 📝
+Comment reply service
+
 
 

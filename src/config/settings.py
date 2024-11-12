@@ -34,6 +34,8 @@ class Settings(BaseSettings):
     LOCAL_TIMEZONE: str = "Australia/Melbourne"
     TARGET_TIMEZONE: str = "America/New_York"
 
+    OPENAI_MODEL: str = "gpt-4"
+
 
 class Config:
     env_file = ".env"

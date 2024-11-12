@@ -22,8 +22,7 @@ ENV/
 # Project specific
 logs/
 *.log
-test_env.py
-tests/test_env.py
+src/services/comment_reply.py
 
 # Docker
 .docker/
