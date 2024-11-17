@@ -86,12 +86,13 @@ class LLMService:
 
         return tweet
 
-    async def generate_retweet(self, trending_tweets: List[Dict]) -> Dict:
+    async def generate_social_response(self, trending_tweets: List[Dict], response_type: str) -> Dict:
         """
-        Select a tweet from trending tweets and generate a response
+        Select a tweet from trending tweets and generate a response for retweeting or commenting
 
         Args:
             trending_tweets: List of trending tweets with their metadata
+            response_type: Either 'retweet' or 'comment'
 
         Returns:
             Dict containing selected tweet and generated response
@@ -105,29 +106,26 @@ class LLMService:
                 'query': t['matched_query']
             } for t in trending_tweets], indent=2)
 
+        max_length = 100 if response_type == 'retweet' else 180
+
         prompt = f"""
                     You are a knowledgeable crypto gaming expert managing a Twitter account. 
-                    Review these trending GameFi tweets and select ONE to respond to:
+                    Review these trending tweets and select ONE to {response_type} to:
 
                     {tweets_context}
 
-                    Requirements for selection:
-                    - Choose tweet with substantial discussion potential
-                    - Prefer verified accounts or those with more followers
-                    - Avoid controversial or negative content
-                    - Prioritize tweets about gaming mechanics, new features, or market analysis
+                    Selection tips:
+                    - Pick tweets about game features, updates, or community topics
+                    - Prefer verified accounts or engaging discussions
+                    - Look for topics you can add value to
 
-                    Requirements for response:
-                    - Must be under 100 characters (to leave room for quote tweet)
-                    - Add value through insight, analysis, or relevant context
-                    - Be engaging but professional
-                    - Include 1-2 relevant emojis
-                    - Don't just agree or praise - add substance
-                    - No price predictions or financial advice
-                    - Keep the tone optimistic but grounded
+                    Writing style:
+                    - Keep it under {max_length} characters
+                    - Be genuine and conversational
+                    - Use light humor when it fits naturally
+                    - Add your unique gaming perspective
 
-                    First select the best tweet to respond to, then generate a response.
-                    Return your selection and response in this JSON format:
+                    Return your response as JSON:
                     {{"selected_index": <index of chosen tweet>, "response": "<your response>"}}
                 """
 
@@ -155,18 +153,23 @@ class LLMService:
             logger.error(f"Unexpected error in response generation: {str(e)}")
             raise
 
+    async def generate_retweet(self, trending_tweets: List[Dict]) -> Dict:
+        return await self.generate_social_response(trending_tweets, 'retweet')
+
+    async def generate_comment(self, trending_tweets: List[Dict]) -> Dict:
+        return await self.generate_social_response(trending_tweets, 'comment')
+
     def _format_tweet_url(self, tweet_id: str) -> str:
         """Format a tweet URL from tweet ID"""
         return f"https://twitter.com/i/web/status/{tweet_id}"
 
 
-
-
-if __name__ == '__main__':
-    from src.services.tweet_scraper import TweetScraper
-    tweet_scraper = TweetScraper()
-    tweets = asyncio.run(tweet_scraper.get_trending_tweets(limit=5))
-
-    llm = LLMService()
-    response = asyncio.run(llm.generate_retweet(tweets))
-    print(response)
+# if __name__ == '__main__':
+#     from src.services.tweet_scraper import TweetScraper
+#
+#     tweet_scraper = TweetScraper()
+#     tweets = asyncio.run(tweet_scraper.get_trending_tweets(limit=5))
+#
+#     llm = LLMService()
+#     response = asyncio.run(llm.generate_retweet(tweets))
+#     print(response)

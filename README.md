@@ -37,7 +37,6 @@ TWITTER_USERNAME=your_twitter_username
 TWITTER_EMAIL=your_twitter_email
 TWITTER_PASSWORD=your_twitter_password
 
-
 # Optional
 ENABLE_IMAGE_GENERATION=true 
 OPENAI_MODEL=your_openai_model 
@@ -53,6 +52,11 @@ The API will be available at `http://localhost:8000`
 ### Health Check
 ```bash
 curl http://localhost:8000/
+```
+
+Get the current schedule times:
+```bash
+curl http://localhost:8000/get_schedule_times
 ```
 
 ### Basic Usage
@@ -75,6 +79,11 @@ curl -X POST "http://localhost:8000/schedule-tweet?time=15:00"
 4. Retweet a tweet:
 ```bash
 curl -X POST "http://localhost:8000/generate-retweet"
+```
+
+5. Generate a comment to trending tweet:
+```bash
+curl -X POST "http://localhost:8000/generate-comment"
 ```
 
 

@@ -89,6 +89,32 @@ class TweetPoster:
             logger.error(f"Error creating quote tweet: {str(e)}")
             return None
 
+    def post_comment(self, tweet_id: str, comment: str) -> str:
+        """
+        Post a comment to an existing tweet
+
+        Args:
+            tweet_id: ID of the tweet to comment on
+            comment: Comment text
+
+        Returns:
+            str: New tweet ID if successful, None otherwise
+        """
+        try:
+            if len(comment) > 270:
+                comment = comment[:267] + "..."
+
+            # Post comment
+            response = self.client.create_tweet(
+                text=comment,
+                in_reply_to_tweet_id=tweet_id
+            )
+
+            return response.data['id'] if response.data else None
+
+        except Exception as e:
+            logger.error(f"Error posting comment: {str(e)}")
+            return None
 
 # if __name__ == '__main__':
 #     poster = TweetPoster()

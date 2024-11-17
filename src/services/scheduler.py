@@ -79,6 +79,14 @@ class TweetScheduler:
         except Exception as e:
             print(f"Failed to schedule daily tweet at {time_str}: {str(e)}")
 
+    def get_health_status(self) -> dict:
+        """Get scheduler health status"""
+        return {
+            "is_running": self.scheduler.running,
+            "job_count": len(self.scheduler.get_jobs()),
+            "next_run_time": str(self.scheduler.get_jobs()[0].next_run_time) if self.scheduler.get_jobs() else None
+        }
+
     def start(self) -> None:
         """Start the scheduler with configured times"""
         try:

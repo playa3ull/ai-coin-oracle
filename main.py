@@ -42,7 +42,7 @@ class TweetResponse(BaseModel):
     tweet_id: str = None
 
 
-class RetweetResponse(BaseModel):
+class SocialInteractionResponse(BaseModel):
     success: bool
     message: str
     tweet_id: str = None
@@ -53,6 +53,16 @@ class RetweetResponse(BaseModel):
 @app.get("/")
 async def root():
     return {"message": "Gaming Coins Twitter Bot API"}
+
+
+@app.get("/get_schedule_times")
+async def get_schedule_times():
+    scheduler_health = scheduler.get_health_status()
+    return {
+        "status": scheduler_health["is_running"],
+        "job_count": scheduler_health["job_count"],
+        "next_run_time": scheduler_health["next_run_time"],
+    }
 
 
 @app.post("/schedule-tweet")
@@ -81,9 +91,14 @@ async def generate_and_post_tweet(force_image: bool = False):
     return await tweet_service.generate_and_post_tweet(force_image)
 
 
-@app.post("/generate-retweet", response_model=RetweetResponse)
+@app.post("/generate-retweet", response_model=SocialInteractionResponse)
 async def generate_and_post_retweet():
-    return await tweet_service.generate_and_post_retweet()
+    return await tweet_service.generate_and_post_response(response_type="retweet")
+
+
+@app.post("/generate-comment", response_model=SocialInteractionResponse)
+async def generate_and_post_comment():
+    return await tweet_service.generate_and_post_response(response_type="comment")
 
 
 @app.on_event("startup")

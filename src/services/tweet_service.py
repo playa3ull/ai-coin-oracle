@@ -70,9 +70,13 @@ class TweetService:
 
         # return response
 
-    async def generate_and_post_retweet(self) -> Dict[str, Any]:
+    async def generate_and_post_response(self, response_type: str = 'retweet', limit: int = 5) -> Dict[str, Any]:
         """
-        Generate and post a retweet with comment for trending GameFi tweets
+        Generate and post a social interaction (retweet or comment) for trending GameFi tweets
+
+        Args:
+            response_type: Type of interaction ('retweet' or 'comment')
+            limit: Maximum number of trending tweets to analyze
 
         Returns:
             Dict containing response data
@@ -83,29 +87,29 @@ class TweetService:
                 await self.tweet_scraper.initialize()
 
             # Get trending tweets
-            trending_tweets = await self.tweet_scraper.get_trending_tweets(limit=5)
+            trending_tweets = await self.tweet_scraper.get_trending_tweets(limit=limit)
             if not trending_tweets:
                 raise HTTPException(status_code=404, detail="No trending tweets found")
 
             # Generate response for selected tweet
-            retweet_data = await self.llm_service.generate_retweet(trending_tweets)
-            if not retweet_data:
+            response_data = await self.llm_service.generate_social_response(trending_tweets, response_type)
+            if not response_data:
                 raise HTTPException(status_code=500, detail="Failed to generate retweet response")
 
             # Post the retweet
-            selected_tweet = retweet_data['tweet']
-            response = retweet_data['response']
+            selected_tweet = response_data['tweet']
+            response = response_data['response']
 
-            tweet_id = self.tweet_poster.retweet_with_comment(
-                tweet_id=selected_tweet['tweet_id'],
-                comment=response
-            )
+            if response_type == 'retweet':
+                tweet_id = self.tweet_poster.retweet_with_comment(selected_tweet['tweet_id'], response)
+            else:
+                tweet_id = self.tweet_poster.post_comment(selected_tweet['tweet_id'], response)
 
             if tweet_id:
                 return {
                     "success": True,
-                    "message": "Retweet posted successfully",
-                    "tweet_id": str(tweet_id),
+                    "message": f"{response_type.capitalize()} posted successfully",
+                    "interaction_id": str(tweet_id),
                     "original_tweet": {
                         "id": selected_tweet['tweet_id'],
                         "author": selected_tweet['author_username'],
