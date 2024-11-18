@@ -55,7 +55,7 @@ async def root():
     return {"message": "Gaming Coins Twitter Bot API"}
 
 
-@app.get("/get_schedule_times")
+@app.get("/get-schedule-times")
 async def get_schedule_times():
     scheduler_health = scheduler.get_health_status()
     return {

@@ -1,8 +1,9 @@
 from llama_index.llms.openai import OpenAI
+from llama_index.core.memory import ChatMemoryBuffer
+from llama_index.core.llms import ChatMessage
 from src.config.settings import get_settings
 from typing import List, Dict
 import json
-import asyncio
 import random
 from dotenv import load_dotenv
 import logging
@@ -16,6 +17,7 @@ load_dotenv()
 class LLMService:
     def __init__(self):
         self.llm = OpenAI(model=settings.OPENAI_MODEL, temperature=0.8, max_tokens=110)
+        self.memory = ChatMemoryBuffer.from_defaults(token_limit=2048)
 
     async def generate_tweet(self, trending_coins: List[Dict], market_summary: Dict = None) -> str:
         """
@@ -51,27 +53,37 @@ class LLMService:
 
         tweet_styles = [
             "Breaking news style",
-            "Casual observation",
             "Market insight",
             "Gaming community focus",
-            "Trend analysis"
+            "Trend analysis",
+            "GameFi trend",
+            "Gaming token spotlight",
         ]
+
+        chat_history = self.memory.get()
+        recent_tweets = "\n".join([
+            f"- {msg.content}"
+            for msg in chat_history
+            if msg.role == "assistant"
+        ])
 
         prompt = f"""
             You are a crypto gaming expert writing viral tweets about GameFi tokens and gaming crypto trends.
-            Market context: {json.dumps(context, indent=2)}
+            Market data: {json.dumps(context, indent=2)}
+            
+            Recent tweets (Avoid similar content):
+            {recent_tweets}
 
             Core Requirements:
-            - Must be under 275 characters
+            - Variable length but must be under 275 characters
             - Focus on significant market movements or interesting volume changes
             - Add gaming-related context when relevant
+            - Must not use same data points in recent tweets
             - Include relevant emojis and hashtags
-            - Natural, conversational tone
             - Avoid price predictions or financial advice
-            - No italics or bold text
+            - Avoid bold or italic text formatting
 
-            Write a tweet that crypto gaming enthusiasts would want to engage with.
-            Make it feel natural and exciting, not like a generic market update.
+            Write an interesting tweet that crypto gaming enthusiasts would want to engage with.
             
             Choose a style for the tweet:{', '.join(tweet_styles)}
 
@@ -83,6 +95,8 @@ class LLMService:
 
         if len(tweet) > 275:
             tweet = tweet[:272] + "..."
+
+        self.memory.put(ChatMessage(role="assistant", content=tweet))
 
         return tweet
 
@@ -165,6 +179,7 @@ class LLMService:
 
 
 # if __name__ == '__main__':
+#     import asyncio
 #     from src.services.tweet_scraper import TweetScraper
 #
 #     tweet_scraper = TweetScraper()

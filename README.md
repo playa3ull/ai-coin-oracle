@@ -56,7 +56,7 @@ curl http://localhost:8000/
 
 Get the current schedule times:
 ```bash
-curl http://localhost:8000/get_schedule_times
+curl http://localhost:8000/get-schedule-times
 ```
 
 ### Basic Usage
@@ -111,8 +111,6 @@ AI_Coin_Oracle/
 └── README.md
 ```
 
-## TO DO 📝
-Comment reply service
 
 
 
