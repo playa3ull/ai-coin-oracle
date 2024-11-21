@@ -12,22 +12,20 @@ logger = logging.getLogger(__name__)
 class TweetPoster:
     def __init__(self):
 
-        auth = tweepy.OAuthHandler(
-            settings.TWITTER_API_KEY,
-            settings.TWITTER_API_SECRET
+        self.client = tweepy.Client(
+            consumer_key=settings.TWITTER_API_KEY.strip(),
+            consumer_secret=settings.TWITTER_API_SECRET.strip(),
+            access_token=settings.TWITTER_ACCESS_TOKEN.strip(),
+            access_token_secret=settings.TWITTER_ACCESS_TOKEN_SECRET.strip()
         )
-        auth.set_access_token(
-            settings.TWITTER_ACCESS_TOKEN,
-            settings.TWITTER_ACCESS_TOKEN_SECRET
+
+        auth = tweepy.OAuth1UserHandler(
+            settings.TWITTER_API_KEY.strip(),
+            settings.TWITTER_API_SECRET.strip(),
+            settings.TWITTER_ACCESS_TOKEN.strip(),
+            settings.TWITTER_ACCESS_TOKEN_SECRET.strip()
         )
         self.api = tweepy.API(auth)
-
-        self.client = tweepy.Client(
-            consumer_key=settings.TWITTER_API_KEY,
-            consumer_secret=settings.TWITTER_API_SECRET,
-            access_token=settings.TWITTER_ACCESS_TOKEN,
-            access_token_secret=settings.TWITTER_ACCESS_TOKEN_SECRET
-        )
 
     def post_tweet(self, text: str, media_path: Optional[str] = None) -> str:
         """
