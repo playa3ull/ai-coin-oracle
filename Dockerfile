@@ -10,7 +10,7 @@ ENV LC_ALL=C.UTF-8
 
 RUN apt-get update && apt-get install -y \
     gcc \
-    python3-dev && \
+    python3-dev \
     ca-certificates \
     curl \
     && rm -rf /var/lib/apt/lists/*
