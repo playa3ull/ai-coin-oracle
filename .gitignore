@@ -24,6 +24,7 @@ logs/
 *.log
 src/services/comment_reply.py
 generate_token.py
+generate_token_2.py
 checking.py
 
 # Docker
