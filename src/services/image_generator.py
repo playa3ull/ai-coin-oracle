@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 class ImageGenerator:
     def __init__(self):
-        self.client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+        self.client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY.strip())
         self.temp_dir = "/tmp/crypto_images"
         self.styles = [
             'pixel-art',
