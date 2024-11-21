@@ -23,6 +23,8 @@ ENV/
 logs/
 *.log
 src/services/comment_reply.py
+generate_token.py
+checking.py
 
 # Docker
 .docker/

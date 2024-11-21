@@ -16,7 +16,8 @@ load_dotenv()
 
 class LLMService:
     def __init__(self):
-        self.llm = OpenAI(model=settings.OPENAI_MODEL, temperature=0.8, max_tokens=110)
+        self.key = settings.OPENAI_API_KEY.strip()
+        self.llm = OpenAI(model=settings.OPENAI_MODEL, api_key=self.key, temperature=0.8, max_tokens=110)
         self.memory = ChatMemoryBuffer.from_defaults(token_limit=2048)
 
     async def generate_tweet(self, trending_coins: List[Dict], market_summary: Dict = None) -> str:
