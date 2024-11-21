@@ -18,6 +18,10 @@ class TweetPoster:
             access_token=settings.TWITTER_ACCESS_TOKEN.strip(),
             access_token_secret=settings.TWITTER_ACCESS_TOKEN_SECRET.strip()
         )
+        print('sssssss')
+        print(self.client.get_me())
+        print(settings.TWITTER_API_KEY.strip(), settings.TWITTER_API_SECRET.strip(), settings.TWITTER_ACCESS_TOKEN.strip(), settings.TWITTER_ACCESS_TOKEN_SECRET.strip())
+        print('ssssss')
 
         auth = tweepy.OAuth1UserHandler(
             settings.TWITTER_API_KEY.strip(),
