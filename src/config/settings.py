@@ -16,9 +16,9 @@ class Settings(BaseSettings):
     COINGECKO_API_KEY: str
 
     # Twitter Account
-    TWITTER_USERNAME: str
-    TWITTER_EMAIL: str
-    TWITTER_PASSWORD: str
+    TWITTER_USERNAME: str | None = None
+    TWITTER_EMAIL: str | None = None
+    TWITTER_PASSWORD: str | None = None
 
     # Feature flags
     ENABLE_IMAGE_GENERATION: bool = True

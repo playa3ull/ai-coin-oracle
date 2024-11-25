@@ -61,6 +61,19 @@ class LLMService:
             "Gaming token spotlight",
         ]
 
+        hook_patterns = [
+            "Breaking: {coin} just...",
+            "GameFi Alert 🚨 {metric}",
+            "Who else spotted {trend}?",
+            "Plot twist in #GameFi:",
+            "Massive move by {coin}:",
+            "Gaming traders right now:",
+            "Watch closely: {metric}",
+            "The next gaming trend:",
+            "Whales are moving:",
+            "Game-changing update:"
+        ]
+
         chat_history = self.memory.get()
         recent_tweets = "\n".join([
             f"- {msg.content}"
@@ -69,26 +82,30 @@ class LLMService:
         ])
 
         prompt = f"""
-            You are a crypto gaming expert writing viral tweets about GameFi tokens and gaming crypto trends.
+            You are a crypto gaming expert writing viral tweets about GameFi tokens and trends.
             Market data: {json.dumps(context, indent=2)}
             
             Recent tweets (Avoid similar content):
             {recent_tweets}
+            
+            Hook examples:
+            {json.dumps(hook_patterns, indent=2)} 
 
             Core Requirements:
-            - Variable length but must be under 275 characters
-            - Focus on significant market movements or interesting volume changes
+            - Length flexibility (Max 260 chars)
+            - Focus on significant market movements or interesting data points
             - Add gaming-related context when relevant
-            - Must not use same data points in recent tweets
             - Include relevant emojis and hashtags
-            - Avoid price predictions or financial advice
-            - Avoid bold or italic text formatting
-
-            Write an interesting tweet that crypto gaming enthusiasts would want to engage with.
+            - Trigger curiosity or emotion
+            
+            Avoid:
+            - Same data points in recent tweets
+            - Price predictions or financial advice
+            - Bold or italic text formatting
             
             Choose a style for the tweet:{', '.join(tweet_styles)}
 
-            Tweet:
+            Write an tweet that crypto gaming enthusiasts want to engage with:
             """
 
         response = await self.llm.acomplete(prompt)
