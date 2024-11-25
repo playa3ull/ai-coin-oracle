@@ -31,11 +31,11 @@ class TweetService:
         image_path = None
         try:
             # Get market data
-            trending_coins = await self.coin_service.get_trending_gaming_coins()
+            trending_coins = await self.coin_service.get_trending_coins()
             if not trending_coins:
                 raise HTTPException(status_code=404, detail="No trending gaming coins found")
 
-            market_summary = await self.coin_service.get_gaming_coins_summary()
+            market_summary = await self.coin_service.get_coins_summary()
 
             # Generate tweet content
             tweet_content = await self.llm_service.generate_tweet(trending_coins, market_summary)

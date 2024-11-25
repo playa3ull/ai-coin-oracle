@@ -22,56 +22,58 @@ class LLMService:
 
     async def generate_tweet(self, trending_coins: List[Dict], market_summary: Dict = None) -> str:
         """
-        Generate a tweet about trending gaming coins
+        Generate a tweet about trending gaming and AI coins
 
         Args:
             trending_coins: List of trending gaming coins with detailed metrics
             market_summary: Gaming market overview and metrics
         """
 
+        coins_by_category = {}
+        for coin in trending_coins:
+            category = coin['category']
+            if category not in coins_by_category:
+                coins_by_category[category] = []
+            coins_by_category[category].append({
+                "name": coin["name"],
+                "price": f"${coin['current_price']:.6f}" if coin[
+                                                                'current_price'] < 0.01 else f"${coin['current_price']:.2f}",
+                "change_24h": f"{coin['price_change_24h']:.1f}%",
+                "volume": f"${coin['volume_24h']:,.0f}",
+                "market_cap_rank": coin["market_cap_rank"]
+            })
+
         market_context = {
-            "total_market_cap": f"${market_summary['market_cap']:,.0f}" if market_summary else None,
-            "total_volume": f"${market_summary['total_volume']:,.0f}" if market_summary else None,
-            "market_cap_change": f"{market_summary['market_cap_change_24h']:.1f}%" if market_summary else None,
-            "volume_change": f"{market_summary['volume_change_24h']:.1f}%" if market_summary else None
+            category: {
+                "total_market_cap": f"${summary['market_cap']:,.0f}",
+                "total_volume": f"${summary['total_volume']:,.0f}",
+                "market_cap_change": f"{summary['market_cap_change_24h']:.1f}%",
+                "top_coins": summary["top_coins"]
+            }
+            for category, summary in market_summary.items()
         }
 
         context = {
-            "trending_coins": [
-                {
-                    "name": coin["name"],
-                    "symbol": coin["symbol"],
-                    "price": f"${coin['current_price']:.6f}" if coin[
-                                                                    'current_price'] < 0.01 else f"${coin['current_price']:.2f}",
-                    "change_24h": f"{coin['price_change_24h']:.1f}%",
-                    "volume": f"${coin['volume_24h']:,.0f}",
-                    "market_cap_rank": coin["market_cap_rank"]
-                }
-                for coin in trending_coins[:3]
-            ],
+            "trending_coins": coins_by_category,
             "market_overview": market_context if market_summary else None
         }
 
         tweet_styles = [
             "Breaking news style",
             "Market insight",
-            "Gaming community focus",
-            "Trend analysis",
-            "GameFi trend",
-            "Gaming token spotlight",
+            "Community focus",
+            "Trend analysis"
         ]
 
         hook_patterns = [
             "Breaking: {coin} just...",
-            "GameFi Alert 🚨 {metric}",
-            "Who else spotted {trend}?",
-            "Plot twist in #GameFi:",
-            "Massive move by {coin}:",
-            "Gaming traders right now:",
-            "Watch closely: {metric}",
-            "The next gaming trend:",
-            "Whales are moving:",
-            "Game-changing update:"
+            "🚨 {coin} Alert:",
+            "Trending Now:",
+            "Market Move:",
+            "Who spotted {trend}?",
+            "Tech Update:",
+            "Whale Alert:",
+            "New Milestone:"
         ]
 
         chat_history = self.memory.get()
@@ -82,7 +84,7 @@ class LLMService:
         ])
 
         prompt = f"""
-            You are a crypto gaming expert writing viral tweets about GameFi tokens and trends.
+            You are a crypto expert writing viral tweets about GameFi and AI tokens.
             Market data: {json.dumps(context, indent=2)}
             
             Recent tweets (Avoid similar content):
@@ -94,18 +96,15 @@ class LLMService:
             Core Requirements:
             - Length flexibility (Max 260 chars)
             - Focus on significant market movements or interesting data points
-            - Add gaming-related context when relevant
-            - Include relevant emojis and hashtags
-            - Trigger curiosity or emotion
-            
-            Avoid:
-            - Same data points in recent tweets
-            - Price predictions or financial advice
-            - Bold or italic text formatting
+            - Include relevant emojis and hashtags based on category
+            - Add sense of humor or curiosity if possible
+            - Avoid same data points or coin in recent tweets
+            - Avoid using too many numbers
+            - No formatting (bold/italic)
             
             Choose a style for the tweet:{', '.join(tweet_styles)}
 
-            Write an tweet that crypto gaming enthusiasts want to engage with:
+            Write an tweet that crypto enthusiasts want to engage with:
             """
 
         response = await self.llm.acomplete(prompt)

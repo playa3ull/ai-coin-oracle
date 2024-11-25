@@ -13,6 +13,8 @@ class CoinService:
         self.api_key = settings.COINGECKO_API_KEY
         self.last_request_time = 0
         self.min_request_interval = 1.5
+        # self.categories = ['gaming', 'artificial-intelligence']
+        self.categories = ['artificial-intelligence']
 
     async def _make_request(self, endpoint: str, params: dict = None) -> Dict:
         """
@@ -46,61 +48,68 @@ class CoinService:
             print(f"API request error: {str(e)}")
             raise
 
-    async def get_trending_gaming_coins(self, limit: int = 10) -> List[Dict]:
+    async def get_trending_coins(self, limit: int = 10) -> List[Dict]:
         """
-        Get trending gaming coins using the coins/markets endpoint with gaming category
+        Get trending coins from both gaming and AI categories
         """
         try:
-            params = {
-                'vs_currency': 'usd',
-                'category': 'gaming',
-                'order': 'volume_desc',
-                'per_page': limit,
-                'page': 1,
-                'sparkline': 'false',
-                'price_change_percentage': '24h'
-            }
+            all_coins = []
 
-            coins_data = await self._make_request("/coins/markets", params)
+            for category in self.categories:
 
-            trending_coins = [
-                {
-                    'id': coin['id'],
-                    'name': coin['name'],
-                    'symbol': coin['symbol'].upper(),
-                    'market_cap_rank': coin['market_cap_rank'],
-                    'current_price': coin['current_price'],
-                    'price_change_24h': coin['price_change_percentage_24h'],
-                    'market_cap': coin['market_cap'],
-                    'volume_24h': coin['total_volume'],
-                    'image': coin['image'],
-                    'last_updated': coin['last_updated']
+                params = {
+                    'vs_currency': 'usd',
+                    'category': category,
+                    'order': 'volume_desc',
+                    'per_page': limit,
+                    'page': 1,
+                    'sparkline': 'false',
+                    'price_change_percentage': '24h'
                 }
-                for coin in coins_data
-            ]
 
-            return trending_coins
+                coins_data = await self._make_request("/coins/markets", params)
+
+                trending_coins = [
+                    {
+                        'id': coin['id'],
+                        'name': coin['name'],
+                        'market_cap_rank': coin['market_cap_rank'],
+                        'current_price': coin['current_price'],
+                        'price_change_24h': coin['price_change_percentage_24h'],
+                        'market_cap': coin['market_cap'],
+                        'volume_24h': coin['total_volume'],
+                        'category': category,
+                    }
+                    for coin in coins_data
+                ]
+                all_coins.extend(trending_coins)
+
+            return all_coins
 
         except Exception as e:
             print(f"Error fetching trending gaming coins: {str(e)}")
             raise
 
-    async def get_gaming_coins_summary(self) -> Dict:
+    async def get_coins_summary(self) -> Dict:
         """
-        Get a summary of gaming category coins including market metrics
+        Get a summary of gaming and AI category coins including market metrics
         """
         try:
-            params = {'vs_currency': 'usd'}
-            category_data = await self._make_request("/coins/categories/gaming", params)
+            summaries = {}
 
-            return {
-                'market_cap': category_data.get('market_cap', 0),
-                'total_volume': category_data.get('volume_24h', 0),
-                'market_cap_change_24h': category_data.get('market_cap_change_24h', 0),
-                'volume_change_24h': category_data.get('volume_change_24h', 0)
-            }
+            for category in self.categories:
+                params = {'vs_currency': 'usd'}
+                data = await self._make_request(f"/coins/categories/{category}", params)
+
+                summaries[category] = {
+                    'market_cap': data.get('market_cap', 0),
+                    'total_volume': data.get('volume_24h', 0),
+                    'market_cap_change_24h': data.get('market_cap_change_24h', 0),
+                    'top_coins': data.get('top_3_coins_id', [])
+                }
+
+            return summaries
 
         except Exception as e:
             print(f"Error fetching gaming category summary: {str(e)}")
             raise
-
