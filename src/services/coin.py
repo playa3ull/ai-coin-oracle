@@ -13,8 +13,7 @@ class CoinService:
         self.api_key = settings.COINGECKO_API_KEY
         self.last_request_time = 0
         self.min_request_interval = 1.5
-        # self.categories = ['gaming', 'artificial-intelligence']
-        self.categories = ['artificial-intelligence']
+        self.categories = ['gaming', 'artificial-intelligence']
 
     async def _make_request(self, endpoint: str, params: dict = None) -> Dict:
         """
